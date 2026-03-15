@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:bulgariatravel.org)",
+      "WebFetch(domain:visitbulgaria.com)",
+      "WebFetch(domain:www.programata.bg)",
+      "WebFetch(domain:culture.bg)",
+      "WebFetch(domain:bg.wikipedia.org)",
+      "WebFetch(domain:www.bulgarianfestivals.com)",
+      "WebFetch(domain:www.bgevents.bg)",
+      "WebFetch(domain:events.dir.bg)",
+      "Bash(mkdir:*)"
+    ]
+  }
+}
