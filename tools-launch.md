@@ -6,6 +6,7 @@
 
 ВАЖНО: За да отворим sql ide-то трябва да стартираме и Apache от XAMPP Control Panel-a и да отидем на http://localhost/phpmyadmin
 
+5. За да изпълниш schema.sql — отвори браузър на http://localhost/phpmyadmin, кликни Import и качи файла.
 
 1.mvn compile
 2.mvn exec:java "-Dexec.mainClass=bg.sabori.Main"
