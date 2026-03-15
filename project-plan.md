@@ -215,43 +215,46 @@ resources/
 
 ## План за имплементация
 
-### Фаза 1 — База данни (Човек 1)
-- [ ] Написване на `schema.sql` (CREATE TABLE + constraints)
-- [ ] Добавяне на seed данни с реални български събори
-- [ ] Тестване в MySQL Workbench
+### ~~Фаза 1 — База данни (Човек 1)~~ ✅ ГОТОВО
+- [x] Написване на `schema.sql` (CREATE TABLE + constraints)
+- [x] Добавяне на seed данни с реални български събори
+- [x] Тестване в MySQL Workbench
 
-### Фаза 2 — Java скелет (Човек 1)
-- [ ] Създаване на Maven проект
-- [ ] Добавяне на MySQL Connector/J в `pom.xml`
-- [ ] `DatabaseConnection.java` (singleton)
-- [ ] Всички model класове (Region, Settlement, Category, Organizer, Event)
+### ~~Фаза 2 — Java скелет (Човек 1)~~ ✅ ГОТОВО
+- [x] Създаване на Maven проект
+- [x] Добавяне на MySQL Connector/J в `pom.xml`
+- [x] `DatabaseConnection.java` (singleton)
+- [x] Всички model класове (Region, Settlement, Category, Organizer, Event)
 
-### Фаза 3 — DAO слой, Човек 1
-- [ ] `RegionDAO`
-- [ ] `CategoryDAO`
-- [ ] `SettlementDAO`
+### ~~Фаза 3 — DAO слой, Човек 1~~ ✅ ГОТОВО
+- [x] `RegionDAO`
+- [x] `CategoryDAO`
+- [x] `SettlementDAO`
 
-### Фаза 4 — GUI, Човек 1
-- [ ] `MainFrame` с JTabbedPane
-- [ ] `RegionsPanel`
-- [ ] `SettlementsPanel`
-- [ ] `CategoriesPanel`
-- [ ] Stub панели за колегата (OrganizersPanel, EventsPanel, SearchPanel, StatisticsPanel)
+### ~~Фаза 4 — GUI, Човек 1~~ ✅ ГОТОВО
+- [x] `MainFrame` с JTabbedPane
+- [x] `RegionsPanel`
+- [x] `SettlementsPanel`
+- [x] `CategoriesPanel`
+- [x] Stub панели за колегата (OrganizersPanel, EventsPanel, SearchPanel, StatisticsPanel)
 
-### Фаза 5 — DAO слой, Човек 2
-- [ ] `OrganizerDAO`
-- [ ] `EventDAO`
+---
 
-### Фаза 6 — GUI, Човек 2
-- [ ] `OrganizersPanel` (замества stub)
-- [ ] `EventsPanel` (замества stub)
-- [ ] `SearchPanel` (замества stub)
-- [ ] `StatisticsPanel` (замества stub)
+## Оставащо за Човек 2
+
+### Фаза 5 — DAO слой
+- [ ] `OrganizerDAO` — CRUD + search + JOIN към settlements
+- [ ] `EventDAO` — CRUD + search + JOIN към settlements, categories, organizers
+
+### Фаза 6 — GUI панели
+- [ ] `OrganizersPanel` — замества stub, пълен CRUD + dropdown за населено място
+- [ ] `EventsPanel` — замества stub, пълен CRUD + 3 dropdown-а (населено място, категория, организатор)
+- [ ] `SearchPanel` — замества stub, многокритериална справка (мин. 2 критерия от различни таблици)
+- [ ] `StatisticsPanel` — замества stub, визуализация на статистики
 
 ### Фаза 7 — Финализация (заедно)
 - [ ] Интеграционно тестване
 - [ ] Финална валидация и error handling
-- [ ] Попълване на seed данни
 - [ ] Подготовка за презентация
 
 ---
