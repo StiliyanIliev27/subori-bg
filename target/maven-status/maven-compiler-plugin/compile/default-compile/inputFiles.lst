@@ -1,20 +1,20 @@
-/Users/martinmechkov/IdeaProjects/subori-bg/src/main/java/bg/sabori/Main.java
-/Users/martinmechkov/IdeaProjects/subori-bg/src/main/java/bg/sabori/dao/CategoryDAO.java
-/Users/martinmechkov/IdeaProjects/subori-bg/src/main/java/bg/sabori/dao/EventDAO.java
-/Users/martinmechkov/IdeaProjects/subori-bg/src/main/java/bg/sabori/dao/OrganizerDAO.java
-/Users/martinmechkov/IdeaProjects/subori-bg/src/main/java/bg/sabori/dao/RegionDAO.java
-/Users/martinmechkov/IdeaProjects/subori-bg/src/main/java/bg/sabori/dao/SettlementDAO.java
-/Users/martinmechkov/IdeaProjects/subori-bg/src/main/java/bg/sabori/db/DatabaseConnection.java
-/Users/martinmechkov/IdeaProjects/subori-bg/src/main/java/bg/sabori/model/Category.java
-/Users/martinmechkov/IdeaProjects/subori-bg/src/main/java/bg/sabori/model/Event.java
-/Users/martinmechkov/IdeaProjects/subori-bg/src/main/java/bg/sabori/model/Organizer.java
-/Users/martinmechkov/IdeaProjects/subori-bg/src/main/java/bg/sabori/model/Region.java
-/Users/martinmechkov/IdeaProjects/subori-bg/src/main/java/bg/sabori/model/Settlement.java
-/Users/martinmechkov/IdeaProjects/subori-bg/src/main/java/bg/sabori/ui/CategoriesPanel.java
-/Users/martinmechkov/IdeaProjects/subori-bg/src/main/java/bg/sabori/ui/EventsPanel.java
-/Users/martinmechkov/IdeaProjects/subori-bg/src/main/java/bg/sabori/ui/MainFrame.java
-/Users/martinmechkov/IdeaProjects/subori-bg/src/main/java/bg/sabori/ui/OrganizersPanel.java
-/Users/martinmechkov/IdeaProjects/subori-bg/src/main/java/bg/sabori/ui/RegionsPanel.java
-/Users/martinmechkov/IdeaProjects/subori-bg/src/main/java/bg/sabori/ui/SearchPanel.java
-/Users/martinmechkov/IdeaProjects/subori-bg/src/main/java/bg/sabori/ui/SettlementsPanel.java
-/Users/martinmechkov/IdeaProjects/subori-bg/src/main/java/bg/sabori/ui/StatisticsPanel.java
+D:\University\OOP and DB\Diploma Project\src\main\java\bg\sabori\dao\CategoryDAO.java
+D:\University\OOP and DB\Diploma Project\src\main\java\bg\sabori\dao\EventDAO.java
+D:\University\OOP and DB\Diploma Project\src\main\java\bg\sabori\dao\OrganizerDAO.java
+D:\University\OOP and DB\Diploma Project\src\main\java\bg\sabori\dao\RegionDAO.java
+D:\University\OOP and DB\Diploma Project\src\main\java\bg\sabori\dao\SettlementDAO.java
+D:\University\OOP and DB\Diploma Project\src\main\java\bg\sabori\db\DatabaseConnection.java
+D:\University\OOP and DB\Diploma Project\src\main\java\bg\sabori\Main.java
+D:\University\OOP and DB\Diploma Project\src\main\java\bg\sabori\model\Category.java
+D:\University\OOP and DB\Diploma Project\src\main\java\bg\sabori\model\Event.java
+D:\University\OOP and DB\Diploma Project\src\main\java\bg\sabori\model\Organizer.java
+D:\University\OOP and DB\Diploma Project\src\main\java\bg\sabori\model\Region.java
+D:\University\OOP and DB\Diploma Project\src\main\java\bg\sabori\model\Settlement.java
+D:\University\OOP and DB\Diploma Project\src\main\java\bg\sabori\ui\CategoriesPanel.java
+D:\University\OOP and DB\Diploma Project\src\main\java\bg\sabori\ui\EventsPanel.java
+D:\University\OOP and DB\Diploma Project\src\main\java\bg\sabori\ui\MainFrame.java
+D:\University\OOP and DB\Diploma Project\src\main\java\bg\sabori\ui\OrganizersPanel.java
+D:\University\OOP and DB\Diploma Project\src\main\java\bg\sabori\ui\RegionsPanel.java
+D:\University\OOP and DB\Diploma Project\src\main\java\bg\sabori\ui\SearchPanel.java
+D:\University\OOP and DB\Diploma Project\src\main\java\bg\sabori\ui\SettlementsPanel.java
+D:\University\OOP and DB\Diploma Project\src\main\java\bg\sabori\ui\StatisticsPanel.java

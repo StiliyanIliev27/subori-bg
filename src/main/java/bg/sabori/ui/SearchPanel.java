@@ -9,6 +9,7 @@ import bg.sabori.model.Region;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableRowSorter;
 import java.awt.*;
 import java.sql.SQLException;
 import java.util.List;
@@ -31,8 +32,10 @@ public class SearchPanel extends JPanel {
     private JComboBox<Region> organizerTypeRegionCombo;
     private JButton           btnOrganizerTypeRegion;
 
-    private final DefaultTableModel tableModel;
-    private final JTable            table;
+    private final DefaultTableModel           tableModel;
+    private final JTable                      table;
+    private final TableRowSorter<DefaultTableModel> sorter;
+    private final JLabel                      statusLabel;
 
     private List<Region>   regions;
     private List<Category> categories;
@@ -52,8 +55,22 @@ public class SearchPanel extends JPanel {
             @Override public boolean isCellEditable(int row, int column) { return false; }
         };
         table = new JTable(tableModel);
-        table.setRowHeight(24);
+        sorter = new TableRowSorter<>(tableModel);
+        table.setRowSorter(sorter);
+        table.setRowHeight(26);
+        table.getTableHeader().setReorderingAllowed(false);
+        table.getColumnModel().getColumn(0).setPreferredWidth(200);
+        table.getColumnModel().getColumn(1).setPreferredWidth(100);
+        table.getColumnModel().getColumn(2).setPreferredWidth(75);
+        table.getColumnModel().getColumn(3).setPreferredWidth(110);
+        table.getColumnModel().getColumn(4).setPreferredWidth(140);
+        table.getColumnModel().getColumn(5).setPreferredWidth(170);
         add(new JScrollPane(table), BorderLayout.CENTER);
+
+        statusLabel = new JLabel(" ");
+        statusLabel.setBorder(BorderFactory.createEmptyBorder(2, 4, 2, 4));
+        statusLabel.setForeground(Color.GRAY);
+        add(statusLabel, BorderLayout.SOUTH);
 
         loadLookups();
         clearResults();
@@ -64,7 +81,7 @@ public class SearchPanel extends JPanel {
         panel.setBorder(BorderFactory.createTitledBorder("Справка: Регион + Месец"));
 
         regionMonthRegionCombo = new JComboBox<>();
-        regionMonthCombo = new JComboBox<>(new String[]{"1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12"});
+        regionMonthCombo = new JComboBox<>(new String[]{"1","2","3","4","5","6","7","8","9","10","11","12"});
         btnRegionMonth = new JButton("Покажи");
 
         panel.add(new JLabel("Регион:"));
@@ -182,10 +199,12 @@ public class SearchPanel extends JPanel {
                 event.getOrganizerName()
             });
         }
+        statusLabel.setText("Намерени: " + data.size() + " резултата");
     }
 
     private void clearResults() {
         tableModel.setRowCount(0);
+        statusLabel.setText(" ");
     }
 
     private void showError(SQLException ex) {

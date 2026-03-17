@@ -11,16 +11,14 @@ import bg.sabori.model.Settlement;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableRowSorter;
 import java.awt.*;
 import java.sql.SQLException;
 import java.time.LocalDate;
-import java.time.format.DateTimeParseException;
+import java.time.ZoneId;
+import java.util.Date;
 import java.util.List;
 
-/**
- * Панелът предоставя CRUD операции за таблица events.
- * Използва: EventDAO, SettlementDAO, CategoryDAO, OrganizerDAO (за dropdown-и).
- */
 public class EventsPanel extends JPanel {
 
     private final EventDAO      dao          = new EventDAO();
@@ -28,22 +26,24 @@ public class EventsPanel extends JPanel {
     private final CategoryDAO   categoryDao  = new CategoryDAO();
     private final OrganizerDAO  organizerDao = new OrganizerDAO();
 
-    private final DefaultTableModel tableModel;
-    private final JTable            table;
-    private final JTextField        searchDateField;
-    private final JComboBox<String> searchMonthCombo;
-    private final JTextField        nameField;
-    private final JTextField        eventDateField;
-    private final JCheckBox         recurringCheck;
-    private final JTextArea         descriptionArea;
-    private final JComboBox<Settlement> settlementCombo;
-    private final JComboBox<Category>   categoryCombo;
-    private final JComboBox<Organizer>  organizerCombo;
-    private final JButton           btnAdd;
-    private final JButton           btnUpdate;
-    private final JButton           btnDelete;
-    private final JButton           btnSearch;
-    private final JButton           btnShowAll;
+    private final DefaultTableModel           tableModel;
+    private final JTable                      table;
+    private final TableRowSorter<DefaultTableModel> sorter;
+    private final JTextField                  searchDateField;
+    private final JComboBox<String>           searchMonthCombo;
+    private final JTextField                  nameField;
+    private final JSpinner                    eventDateSpinner;
+    private final JCheckBox                   recurringCheck;
+    private final JTextArea                   descriptionArea;
+    private final JComboBox<Settlement>       settlementCombo;
+    private final JComboBox<Category>         categoryCombo;
+    private final JComboBox<Organizer>        organizerCombo;
+    private final JButton                     btnAdd;
+    private final JButton                     btnUpdate;
+    private final JButton                     btnDelete;
+    private final JButton                     btnSearch;
+    private final JButton                     btnShowAll;
+    private final JLabel                      statusLabel;
 
     private List<Event>      currentData;
     private List<Settlement> settlements;
@@ -59,12 +59,21 @@ public class EventsPanel extends JPanel {
             @Override public boolean isCellEditable(int row, int column) { return false; }
         };
         table = new JTable(tableModel);
+        sorter = new TableRowSorter<>(tableModel);
+        table.setRowSorter(sorter);
         table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        table.setRowHeight(24);
+        table.setRowHeight(26);
+        table.getTableHeader().setReorderingAllowed(false);
+        table.getColumnModel().getColumn(0).setPreferredWidth(200);
+        table.getColumnModel().getColumn(1).setPreferredWidth(100);
+        table.getColumnModel().getColumn(2).setPreferredWidth(75);
+        table.getColumnModel().getColumn(3).setPreferredWidth(110);
+        table.getColumnModel().getColumn(4).setPreferredWidth(140);
+        table.getColumnModel().getColumn(5).setPreferredWidth(170);
         table.getSelectionModel().addListSelectionListener(e -> onRowSelected());
         add(new JScrollPane(table), BorderLayout.CENTER);
 
-        JPanel searchPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 6, 0));
+        JPanel searchPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 6, 4));
         searchDateField = new JTextField(10);
         searchMonthCombo = new JComboBox<>(new String[]{
             "Всички месеци", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12"
@@ -77,6 +86,7 @@ public class EventsPanel extends JPanel {
         searchPanel.add(searchMonthCombo);
         searchPanel.add(btnSearch);
         searchPanel.add(btnShowAll);
+        searchDateField.addActionListener(e -> onSearch());
 
         JPanel formPanel = new JPanel(new GridBagLayout());
         formPanel.setBorder(BorderFactory.createTitledBorder("Данни за събитие"));
@@ -85,16 +95,19 @@ public class EventsPanel extends JPanel {
         gbc.anchor = GridBagConstraints.WEST;
 
         gbc.gridx = 0; gbc.gridy = 0;
-        formPanel.add(new JLabel("Име:"), gbc);
+        formPanel.add(new JLabel("Иeме:"), gbc);
         gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1;
         nameField = new JTextField(24);
         formPanel.add(nameField, gbc);
 
         gbc.gridx = 0; gbc.gridy = 1; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
-        formPanel.add(new JLabel("Дата (yyyy-MM-dd):"), gbc);
+        formPanel.add(new JLabel("Дата:"), gbc);
         gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL;
-        eventDateField = new JTextField(24);
-        formPanel.add(eventDateField, gbc);
+        SpinnerDateModel dateModel = new SpinnerDateModel();
+        eventDateSpinner = new JSpinner(dateModel);
+        JSpinner.DateEditor dateEditor = new JSpinner.DateEditor(eventDateSpinner, "yyyy-MM-dd");
+        eventDateSpinner.setEditor(dateEditor);
+        formPanel.add(eventDateSpinner, gbc);
 
         gbc.gridx = 0; gbc.gridy = 2; gbc.fill = GridBagConstraints.NONE;
         formPanel.add(new JLabel("Ежегодно:"), gbc);
@@ -135,16 +148,25 @@ public class EventsPanel extends JPanel {
         btnAdd = new JButton("Добави");
         btnUpdate = new JButton("Редактирай");
         btnDelete = new JButton("Изтрий");
+        JButton btnClear = new JButton("Изчисти");
+        styleAddButton(btnAdd);
+        styleDeleteButton(btnDelete);
         btnUpdate.setEnabled(false);
         btnDelete.setEnabled(false);
         btnPanel.add(btnAdd);
         btnPanel.add(btnUpdate);
         btnPanel.add(btnDelete);
+        btnPanel.add(btnClear);
         formPanel.add(btnPanel, gbc);
+
+        statusLabel = new JLabel("Показани: 0 записа");
+        statusLabel.setBorder(BorderFactory.createEmptyBorder(2, 4, 2, 4));
+        statusLabel.setForeground(Color.GRAY);
 
         JPanel south = new JPanel(new BorderLayout(0, 6));
         south.add(searchPanel, BorderLayout.NORTH);
         south.add(formPanel, BorderLayout.CENTER);
+        south.add(statusLabel, BorderLayout.SOUTH);
         add(south, BorderLayout.SOUTH);
 
         btnAdd.addActionListener(e -> onAdd());
@@ -152,6 +174,7 @@ public class EventsPanel extends JPanel {
         btnDelete.addActionListener(e -> onDelete());
         btnSearch.addActionListener(e -> onSearch());
         btnShowAll.addActionListener(e -> loadAll());
+        btnClear.addActionListener(e  -> clearForm());
 
         loadDropdownData();
         loadAll();
@@ -199,16 +222,19 @@ public class EventsPanel extends JPanel {
                 e.getOrganizerName()
             });
         }
+        statusLabel.setText("Показани: " + data.size() + " записа");
         clearForm();
     }
 
     private void onRowSelected() {
-        int row = table.getSelectedRow();
-        if (row < 0) return;
+        int viewRow = table.getSelectedRow();
+        if (viewRow < 0) return;
+        int row = table.convertRowIndexToModel(viewRow);
 
         Event event = currentData.get(row);
         nameField.setText(event.getName());
-        eventDateField.setText(event.getEventDate().toString());
+        eventDateSpinner.setValue(Date.from(
+            event.getEventDate().atStartOfDay(ZoneId.systemDefault()).toInstant()));
         recurringCheck.setSelected(event.isRecurring());
         descriptionArea.setText(event.getDescription() == null ? "" : event.getDescription());
 
@@ -224,9 +250,7 @@ public class EventsPanel extends JPanel {
         String name = nameField.getText().trim();
         if (name.isEmpty()) { showWarn("Въведете име."); return; }
 
-        LocalDate date = parseDate(eventDateField.getText().trim());
-        if (date == null) return;
-
+        LocalDate date = spinnerDate();
         Settlement settlement = (Settlement) settlementCombo.getSelectedItem();
         Category category = (Category) categoryCombo.getSelectedItem();
         Organizer organizer = (Organizer) organizerCombo.getSelectedItem();
@@ -246,15 +270,14 @@ public class EventsPanel extends JPanel {
     }
 
     private void onUpdate() {
-        int row = table.getSelectedRow();
-        if (row < 0) return;
+        int viewRow = table.getSelectedRow();
+        if (viewRow < 0) return;
+        int row = table.convertRowIndexToModel(viewRow);
 
         String name = nameField.getText().trim();
         if (name.isEmpty()) { showWarn("Въведете име."); return; }
 
-        LocalDate date = parseDate(eventDateField.getText().trim());
-        if (date == null) return;
-
+        LocalDate date = spinnerDate();
         Settlement settlement = (Settlement) settlementCombo.getSelectedItem();
         Category category = (Category) categoryCombo.getSelectedItem();
         Organizer organizer = (Organizer) organizerCombo.getSelectedItem();
@@ -264,8 +287,8 @@ public class EventsPanel extends JPanel {
         }
 
         try {
-            dao.update(currentData.get(row).getId(), name, date, recurringCheck.isSelected(), descriptionArea.getText(),
-                settlement.getId(), category.getId(), organizer.getId());
+            dao.update(currentData.get(row).getId(), name, date, recurringCheck.isSelected(),
+                descriptionArea.getText(), settlement.getId(), category.getId(), organizer.getId());
             loadDropdownData();
             loadAll();
         } catch (SQLException ex) {
@@ -274,8 +297,9 @@ public class EventsPanel extends JPanel {
     }
 
     private void onDelete() {
-        int row = table.getSelectedRow();
-        if (row < 0) return;
+        int viewRow = table.getSelectedRow();
+        if (viewRow < 0) return;
+        int row = table.convertRowIndexToModel(viewRow);
 
         Event event = currentData.get(row);
         int confirm = JOptionPane.showConfirmDialog(this,
@@ -297,9 +321,13 @@ public class EventsPanel extends JPanel {
 
         try {
             if (!dateText.isEmpty()) {
-                LocalDate date = parseDate(dateText);
-                if (date == null) return;
-                currentData = dao.searchByDate(date);
+                try {
+                    LocalDate date = LocalDate.parse(dateText);
+                    currentData = dao.searchByDate(date);
+                } catch (Exception ex) {
+                    showWarn("Невалидна дата. Използвайте формат yyyy-MM-dd.");
+                    return;
+                }
             } else if (monthIndex > 0) {
                 currentData = dao.searchByMonth(monthIndex);
             } else {
@@ -312,36 +340,23 @@ public class EventsPanel extends JPanel {
         }
     }
 
-    private LocalDate parseDate(String dateText) {
-        try {
-            return LocalDate.parse(dateText);
-        } catch (DateTimeParseException ex) {
-            showWarn("Невалидна дата. Използвайте формат yyyy-MM-dd.");
-            return null;
-        }
+    private LocalDate spinnerDate() {
+        Date d = (Date) eventDateSpinner.getValue();
+        return d.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
     }
 
     private void selectById(JComboBox<?> combo, List<?> source, int id) {
         for (int i = 0; i < source.size(); i++) {
             Object item = source.get(i);
-            if (item instanceof Settlement s && s.getId() == id) {
-                combo.setSelectedIndex(i);
-                return;
-            }
-            if (item instanceof Category c && c.getId() == id) {
-                combo.setSelectedIndex(i);
-                return;
-            }
-            if (item instanceof Organizer o && o.getId() == id) {
-                combo.setSelectedIndex(i);
-                return;
-            }
+            if (item instanceof Settlement s && s.getId() == id) { combo.setSelectedIndex(i); return; }
+            if (item instanceof Category c  && c.getId() == id)  { combo.setSelectedIndex(i); return; }
+            if (item instanceof Organizer o && o.getId() == id)  { combo.setSelectedIndex(i); return; }
         }
     }
 
     private void clearForm() {
         nameField.setText("");
-        eventDateField.setText("");
+        eventDateSpinner.setValue(new Date());
         recurringCheck.setSelected(true);
         descriptionArea.setText("");
         if (settlementCombo.getItemCount() > 0) settlementCombo.setSelectedIndex(0);
@@ -350,6 +365,18 @@ public class EventsPanel extends JPanel {
         btnUpdate.setEnabled(false);
         btnDelete.setEnabled(false);
         table.clearSelection();
+    }
+
+    private static void styleAddButton(JButton btn) {
+        btn.setBackground(new Color(40, 167, 69));
+        btn.setForeground(Color.WHITE);
+        btn.setFocusPainted(false);
+    }
+
+    private static void styleDeleteButton(JButton btn) {
+        btn.setBackground(new Color(220, 53, 69));
+        btn.setForeground(Color.WHITE);
+        btn.setFocusPainted(false);
     }
 
     private void showError(SQLException ex) {

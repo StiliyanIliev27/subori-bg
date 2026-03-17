@@ -7,14 +7,11 @@ import bg.sabori.model.Settlement;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableRowSorter;
 import java.awt.*;
 import java.sql.SQLException;
 import java.util.List;
 
-/**
- * Панелът предоставя CRUD операции за таблица organizers.
- * Използва: OrganizerDAO, SettlementDAO (за dropdown на населено място).
- */
 public class OrganizersPanel extends JPanel {
 
     private static final String[] ORGANIZER_TYPES = {"Община", "Читалище", "Частен"};
@@ -22,19 +19,21 @@ public class OrganizersPanel extends JPanel {
     private final OrganizerDAO  dao           = new OrganizerDAO();
     private final SettlementDAO settlementDao = new SettlementDAO();
 
-    private final DefaultTableModel tableModel;
-    private final JTable            table;
-    private final JTextField        searchField;
-    private final JComboBox<String> searchTypeCombo;
-    private final JTextField        nameField;
-    private final JComboBox<String> typeCombo;
-    private final JTextField        contactField;
-    private final JComboBox<Settlement> settlementCombo;
-    private final JButton           btnAdd;
-    private final JButton           btnUpdate;
-    private final JButton           btnDelete;
-    private final JButton           btnSearch;
-    private final JButton           btnShowAll;
+    private final DefaultTableModel           tableModel;
+    private final JTable                      table;
+    private final TableRowSorter<DefaultTableModel> sorter;
+    private final JTextField                  searchField;
+    private final JComboBox<String>           searchTypeCombo;
+    private final JTextField                  nameField;
+    private final JComboBox<String>           typeCombo;
+    private final JTextField                  contactField;
+    private final JComboBox<Settlement>       settlementCombo;
+    private final JButton                     btnAdd;
+    private final JButton                     btnUpdate;
+    private final JButton                     btnDelete;
+    private final JButton                     btnSearch;
+    private final JButton                     btnShowAll;
+    private final JLabel                      statusLabel;
 
     private List<Organizer>  currentData;
     private List<Settlement> settlements;
@@ -48,12 +47,19 @@ public class OrganizersPanel extends JPanel {
             @Override public boolean isCellEditable(int row, int column) { return false; }
         };
         table = new JTable(tableModel);
+        sorter = new TableRowSorter<>(tableModel);
+        table.setRowSorter(sorter);
         table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        table.setRowHeight(24);
+        table.setRowHeight(26);
+        table.getTableHeader().setReorderingAllowed(false);
+        table.getColumnModel().getColumn(0).setPreferredWidth(220);
+        table.getColumnModel().getColumn(1).setPreferredWidth(90);
+        table.getColumnModel().getColumn(2).setPreferredWidth(150);
+        table.getColumnModel().getColumn(3).setPreferredWidth(160);
         table.getSelectionModel().addListSelectionListener(e -> onRowSelected());
         add(new JScrollPane(table), BorderLayout.CENTER);
 
-        JPanel searchPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 6, 0));
+        JPanel searchPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 6, 4));
         searchField = new JTextField(16);
         searchTypeCombo = new JComboBox<>(new String[]{"Всички типове", "Община", "Читалище", "Частен"});
         btnSearch = new JButton("Търси");
@@ -64,6 +70,7 @@ public class OrganizersPanel extends JPanel {
         searchPanel.add(searchTypeCombo);
         searchPanel.add(btnSearch);
         searchPanel.add(btnShowAll);
+        searchField.addActionListener(e -> onSearch());
 
         JPanel formPanel = new JPanel(new GridBagLayout());
         formPanel.setBorder(BorderFactory.createTitledBorder("Данни за организатор"));
@@ -101,16 +108,25 @@ public class OrganizersPanel extends JPanel {
         btnAdd = new JButton("Добави");
         btnUpdate = new JButton("Редактирай");
         btnDelete = new JButton("Изтрий");
+        JButton btnClear = new JButton("Изчисти");
+        styleAddButton(btnAdd);
+        styleDeleteButton(btnDelete);
         btnUpdate.setEnabled(false);
         btnDelete.setEnabled(false);
         btnPanel.add(btnAdd);
         btnPanel.add(btnUpdate);
         btnPanel.add(btnDelete);
+        btnPanel.add(btnClear);
         formPanel.add(btnPanel, gbc);
+
+        statusLabel = new JLabel("Показани: 0 записа");
+        statusLabel.setBorder(BorderFactory.createEmptyBorder(2, 4, 2, 4));
+        statusLabel.setForeground(Color.GRAY);
 
         JPanel south = new JPanel(new BorderLayout(0, 6));
         south.add(searchPanel, BorderLayout.NORTH);
         south.add(formPanel, BorderLayout.CENTER);
+        south.add(statusLabel, BorderLayout.SOUTH);
         add(south, BorderLayout.SOUTH);
 
         btnAdd.addActionListener(e -> onAdd());
@@ -118,6 +134,7 @@ public class OrganizersPanel extends JPanel {
         btnDelete.addActionListener(e -> onDelete());
         btnSearch.addActionListener(e -> onSearch());
         btnShowAll.addActionListener(e -> loadAll());
+        btnClear.addActionListener(e  -> clearForm());
 
         loadSettlements();
         loadAll();
@@ -151,12 +168,14 @@ public class OrganizersPanel extends JPanel {
         for (Organizer o : data) {
             tableModel.addRow(new Object[]{o.getName(), o.getType(), o.getContact(), o.getSettlementName()});
         }
+        statusLabel.setText("Показани: " + data.size() + " записа");
         clearForm();
     }
 
     private void onRowSelected() {
-        int row = table.getSelectedRow();
-        if (row < 0) return;
+        int viewRow = table.getSelectedRow();
+        if (viewRow < 0) return;
+        int row = table.convertRowIndexToModel(viewRow);
 
         Organizer organizer = currentData.get(row);
         nameField.setText(organizer.getName());
@@ -191,8 +210,9 @@ public class OrganizersPanel extends JPanel {
     }
 
     private void onUpdate() {
-        int row = table.getSelectedRow();
-        if (row < 0) return;
+        int viewRow = table.getSelectedRow();
+        if (viewRow < 0) return;
+        int row = table.convertRowIndexToModel(viewRow);
 
         String name = nameField.getText().trim();
         if (name.isEmpty()) { showWarn("Въведете име."); return; }
@@ -211,8 +231,9 @@ public class OrganizersPanel extends JPanel {
     }
 
     private void onDelete() {
-        int row = table.getSelectedRow();
-        if (row < 0) return;
+        int viewRow = table.getSelectedRow();
+        if (viewRow < 0) return;
+        int row = table.convertRowIndexToModel(viewRow);
 
         Organizer organizer = currentData.get(row);
         int confirm = JOptionPane.showConfirmDialog(this,
@@ -259,6 +280,18 @@ public class OrganizersPanel extends JPanel {
         btnUpdate.setEnabled(false);
         btnDelete.setEnabled(false);
         table.clearSelection();
+    }
+
+    private static void styleAddButton(JButton btn) {
+        btn.setBackground(new Color(40, 167, 69));
+        btn.setForeground(Color.WHITE);
+        btn.setFocusPainted(false);
+    }
+
+    private static void styleDeleteButton(JButton btn) {
+        btn.setBackground(new Color(220, 53, 69));
+        btn.setForeground(Color.WHITE);
+        btn.setFocusPainted(false);
     }
 
     private void showError(SQLException ex) {

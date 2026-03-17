@@ -4,17 +4,11 @@ import bg.sabori.dao.EventDAO;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableRowSorter;
 import java.awt.*;
 import java.sql.SQLException;
 import java.util.List;
 
-/**
- * Панелът визуализира статистики:
- *   - Брой събития по регион
- *   - Ежегодни vs еднократни събития
- *   - Топ организатори по брой организирани събития
- * Използва: EventDAO, RegionDAO, OrganizerDAO.
- */
 public class StatisticsPanel extends JPanel {
 
     private final EventDAO eventDao = new EventDAO();
@@ -29,6 +23,9 @@ public class StatisticsPanel extends JPanel {
 
         JPanel topPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 6, 0));
         JButton refreshButton = new JButton("Обнови статистиките");
+        refreshButton.setBackground(new Color(0, 123, 255));
+        refreshButton.setForeground(Color.WHITE);
+        refreshButton.setFocusPainted(false);
         topPanel.add(refreshButton);
         add(topPanel, BorderLayout.NORTH);
 
@@ -43,9 +40,9 @@ public class StatisticsPanel extends JPanel {
         };
 
         JPanel center = new JPanel(new GridLayout(1, 3, 8, 8));
-        center.add(wrapTable("Брой събития по регион", byRegionModel));
-        center.add(wrapTable("Ежегодни vs еднократни", recurringModel));
-        center.add(wrapTable("Топ организатори", topOrganizersModel));
+        center.add(wrapTable("Брой събития по регион",   byRegionModel,      200, 100));
+        center.add(wrapTable("Ежегодни vs еднократни",   recurringModel,     150,  80));
+        center.add(wrapTable("Топ организатори",          topOrganizersModel, 220, 100));
         add(center, BorderLayout.CENTER);
 
         refreshButton.addActionListener(e -> loadStatistics());
@@ -53,9 +50,13 @@ public class StatisticsPanel extends JPanel {
         loadStatistics();
     }
 
-    private JPanel wrapTable(String title, DefaultTableModel model) {
+    private JPanel wrapTable(String title, DefaultTableModel model, int col0Width, int col1Width) {
         JTable table = new JTable(model);
-        table.setRowHeight(24);
+        table.setRowHeight(26);
+        table.setRowSorter(new TableRowSorter<>(model));
+        table.getTableHeader().setReorderingAllowed(false);
+        table.getColumnModel().getColumn(0).setPreferredWidth(col0Width);
+        table.getColumnModel().getColumn(1).setPreferredWidth(col1Width);
 
         JPanel panel = new JPanel(new BorderLayout());
         panel.setBorder(BorderFactory.createTitledBorder(title));
